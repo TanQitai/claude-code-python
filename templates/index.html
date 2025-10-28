@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code Python - AI Agent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🤖 Claude Code Python</h1>
+                <div class="header-actions">
+                    <span class="status-indicator" id="status">
+                        <span class="status-dot"></span>
+                        <span class="status-text">连接中...</span>
+                    </span>
+                    <button class="btn btn-secondary" id="resetBtn" title="重置对话">
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                        重置
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主聊天区域 -->
+        <main class="chat-container">
+            <div class="messages" id="messages">
+                <!-- 欢迎消息 -->
+                <div class="message system-message">
+                    <div class="message-content">
+                        <h3>👋 欢迎使用 Claude Code Python Agent</h3>
+                        <p>这是一个强大的 AI Agent 系统，可以帮你完成各种任务：</p>
+                        <ul>
+                            <li>📁 文件操作和项目分析</li>
+                            <li>🔍 代码搜索和编辑</li>
+                            <li>⚡ 系统命令执行</li>
+                            <li>🛠️ 并行任务处理</li>
+                        </ul>
+                        <p class="hint">💡 直接输入自然语言指令，Agent 会自动选择工具并执行</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="taskInput" 
+                        placeholder="输入任务指令，例如：分析当前项目结构..." 
+                        rows="1"
+                        autofocus
+                    ></textarea>
+                    <button class="btn btn-primary" id="sendBtn">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+                        </svg>
+                        发送
+                    </button>
+                </div>
+                <div class="input-hint">
+                    <kbd>Enter</kbd> 发送 • <kbd>Shift + Enter</kbd> 换行 • <kbd>Esc</kbd> 清空
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
+
