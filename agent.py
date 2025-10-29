@@ -67,11 +67,17 @@ class Agent:
    • 适用于：理解项目、生成报告
 
 6. file_tool - 文件操作
-   • create: 创建文件并写入内容
+   • create: 创建文件并写入内容（⚠️ 单个文件内容不要超过100行）
    • read: 读取文件内容
-   • append: 追加内容
+   • append: 追加内容（用于分批写入大文件）
    • delete: 删除文件
    • exists: 检查文件是否存在
+   
+   ⚠️ 重要：创建大文件的正确方式
+   • 如果代码超过100行，必须分多次写入
+   • 方法1：先 create 写入前半部分，再 append 追加后半部分
+   • 方法2：使用 bash_tool 创建文件：echo "代码" > file.py
+   • 方法3：拆分为多个小文件（最推荐）
 
 7. bash_tool - 执行bash命令
    • 查看文件：cat, head, tail
@@ -163,7 +169,7 @@ class Agent:
         llm_client: K2Client,
         tools: List[BaseTool] = None,
         agent_id: str = "main",
-        max_iterations: int = 10
+        max_iterations: int = 20
     ):
         self.llm_client = llm_client
         self.agent_id = agent_id
@@ -657,7 +663,8 @@ class AgentManager:
                 bash_tool,
                 task_tool
             ],
-            agent_id="main"
+            agent_id="main",
+            max_iterations=30  # 可以为主 Agent 单独设置更大的值
         )
         
         return agent

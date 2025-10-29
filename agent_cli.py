@@ -264,82 +264,96 @@ class AgentCLI:
                 # 记录用户输入
                 self._log_interaction("user_input", user_input)
                 
-                # 执行任务（流式）
+                # 执行任务
                 print()
                 print("🤔 Agent 思考中...")
                 print()
                 
-                # 流式执行任务
+                # 根据配置选择流式或非流式
                 result_text = ""
                 current_iteration = 0
                 success = False
                 
                 try:
-                    for event in self.agent.run_stream(user_input):
-                        event_type = event.get("type")
-                        
-                        if event_type == "iteration":
-                            current_iteration = event["iteration"]
-                            print(f"\n🔄 推理轮 {current_iteration}/{event['max_iterations']}")
-                            print("-" * 70)
-                        
-                        elif event_type == "content":
-                            # 流式输出 LLM 的文本内容
-                            print(event["content"], end="", flush=True)
-                            result_text += event["content"]
-                        
-                        elif event_type == "tool_call":
-                            # 显示工具调用
-                            print(f"\n\n🔧 调用工具: {event['tool_name']}")
-                            # 简化参数显示
-                            args = event['tool_args']
-                            if len(str(args)) > 100:
-                                print(f"   参数: {str(args)[:100]}...")
-                            else:
-                                print(f"   参数: {args}")
+                    if config.STREAM_MODE:
+                        # 流式执行（默认）
+                        for event in self.agent.run_stream(user_input):
+                            event_type = event.get("type")
                             
-                            # 记录工具调用
-                            self._log_interaction("tool_call", 
-                                                event['tool_name'],
-                                                tool_name=event['tool_name'],
-                                                tool_args=event['tool_args'])
-                        
-                        elif event_type == "tool_result":
-                            # 显示工具结果
-                            result = event["result"]
-                            success_flag = result.get("success", False)
-                            if success_flag:
-                                print(f"   ✅ 成功: {result.get('message', '执行成功')}")
-                            else:
-                                print(f"   ❌ 失败: {result.get('error', '未知错误')}")
+                            if event_type == "iteration":
+                                current_iteration = event["iteration"]
+                                print(f"\n🔄 推理轮 {current_iteration}/{event['max_iterations']}")
+                                print("-" * 70)
                             
-                            # 记录工具结果
-                            message = result.get('message', result.get('error', ''))
-                            self._log_interaction("tool_result",
-                                                message,
-                                                success=success_flag,
-                                                message=message)
+                            elif event_type == "content":
+                                # 流式输出 LLM 的文本内容
+                                print(event["content"], end="", flush=True)
+                                result_text += event["content"]
+                            
+                            elif event_type == "tool_call":
+                                # 显示工具调用
+                                print(f"\n\n🔧 调用工具: {event['tool_name']}")
+                                # 简化参数显示
+                                args = event['tool_args']
+                                if len(str(args)) > 100:
+                                    print(f"   参数: {str(args)[:100]}...")
+                                else:
+                                    print(f"   参数: {args}")
+                                
+                                # 记录工具调用
+                                self._log_interaction("tool_call", 
+                                                    event['tool_name'],
+                                                    tool_name=event['tool_name'],
+                                                    tool_args=event['tool_args'])
+                            
+                            elif event_type == "tool_result":
+                                # 显示工具结果
+                                result = event["result"]
+                                success_flag = result.get("success", False)
+                                if success_flag:
+                                    print(f"   ✅ 成功: {result.get('message', '执行成功')}")
+                                else:
+                                    print(f"   ❌ 失败: {result.get('error', '未知错误')}")
+                                
+                                # 记录工具结果
+                                message = result.get('message', result.get('error', ''))
+                                self._log_interaction("tool_result",
+                                                    message,
+                                                    success=success_flag,
+                                                    message=message)
+                            
+                            elif event_type == "complete":
+                                # 任务完成
+                                success = True
+                                if not result_text:
+                                    result_text = event.get("result", "")
+                            
+                            elif event_type == "error":
+                                # 错误
+                                error_msg = event.get('error', '未知错误')
+                                print(f"\n\n❌ 错误: {error_msg}")
+                                self._log_interaction("error", error_msg, error=error_msg)
+                                break
+                            
+                            elif event_type == "max_iterations":
+                                # 达到最大迭代次数
+                                print(f"\n\n⚠️  达到最大迭代次数 ({event['iterations']})")
+                                self._log_interaction("max_iterations", 
+                                                    f"达到最大迭代次数 {event['iterations']}", 
+                                                    iterations=event['iterations'])
+                                break
+                    else:
+                        # 非流式执行（用于解决大文件问题）
+                        print("⚠️ 使用非流式模式（可能解决大文件问题）\n")
+                        result = self.agent.run(user_input)
+                        current_iteration = result.get('iterations', 0)
+                        success = result.get('success', False)
+                        result_text = result.get('result', '')
                         
-                        elif event_type == "complete":
-                            # 任务完成
-                            success = True
-                            if not result_text:
-                                result_text = event.get("result", "")
-                        
-                        elif event_type == "error":
-                            # 错误
-                            error_msg = event.get('error', '未知错误')
+                        if not success:
+                            error_msg = result.get('error', '未知错误')
                             print(f"\n\n❌ 错误: {error_msg}")
                             self._log_interaction("error", error_msg, error=error_msg)
-                            break
-                        
-                        elif event_type == "max_iterations":
-                            # 达到最大迭代次数
-                            print(f"\n\n⚠️  达到最大迭代次数 ({event['iterations']})")
-                            self._log_interaction("max_iterations", 
-                                                f"达到最大迭代次数 {event['iterations']}", 
-                                                iterations=event['iterations'])
-                            break
                     
                     # 记录 Agent 响应
                     if result_text:

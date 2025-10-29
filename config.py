@@ -16,3 +16,6 @@ BASH_TIMEOUT = int(os.getenv("BASH_TIMEOUT", "30"))
 # 调试模式
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
+# 流式输出模式（如果遇到大代码文件解析问题，可以设置为 False）
+STREAM_MODE = os.getenv("STREAM_MODE", "True").lower() == "true"
+
