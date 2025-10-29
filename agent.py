@@ -663,8 +663,7 @@ class AgentManager:
                 bash_tool,
                 task_tool
             ],
-            agent_id="main",
-            max_iterations=30  # 可以为主 Agent 单独设置更大的值
+            agent_id="main"
         )
         
         return agent

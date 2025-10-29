@@ -47,6 +47,12 @@ python agent_cli.py
 
 ## 🎨 Web UI 截图
 
+### 欢迎界面
+![Web UI 欢迎界面](pic/webui1.png)
+
+### 工具调用展示
+![Web UI 工具调用](pic/webui2.png)
+
 Web UI 提供了：
 - ✅ 实时流式输出
 - ✅ 工具调用可视化
